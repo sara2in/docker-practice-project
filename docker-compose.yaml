@@ -1,0 +1,46 @@
+version: '3'
+
+services:
+  database:
+    image: 'postgres:latest'
+    restart: 'always'
+    volumes:
+      - /Users/sara2in/Desktop/Coding/JSOC/Docker/docker-practice-project:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      # what is pg_isready?  
+      test: ['CMD-SHELL', pg_isready -U postgres]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    environment:
+      - DATABASE_HOST="127.0.0.1"
+      - POSTGRES_PASSWORD="docker"
+      - POSTGRES_USER="postgres"
+      - POSTGRES_DB="namesdb"
+
+  backend:
+    # volumes:
+    #   - /Users/sara2in/Desktop/Coding/JSOC/Docker/docker-practice-project/api:/src/app
+    build: api/
+    ports:
+      - '6969:6969'
+    environment:
+      - NODE_ENV="development"
+      - DATABASE_HOST="database"
+      - POSTGRES_PASSWORD="docker"
+      - POSTGRES_USER="postgres"
+      - POSTGRES_PORT="5432"
+      - POSTGRES_DB="namesdb"
+    depends_on:
+      database:
+        condition: service_healthy
+
+  frontend: 
+    build: ui/
+    ports: 
+      - '3000:3000'
+    depends_on:
+      - 'backend'
+  
